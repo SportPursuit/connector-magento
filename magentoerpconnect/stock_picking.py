@@ -209,20 +209,25 @@ class MagentoPickingExport(ExportSynchronizer):
         picking = self.session.browse(self.model._name, binding_id)
         if picking.magento_id:
             return _('Already exported')
-        picking_method = picking.picking_method
-        if picking_method == 'complete':
-            args = self._get_args(picking)
-        elif picking_method == 'partial':
-            lines_info = self._get_lines_info(picking)
-            if not lines_info:
-                raise NothingToDoJob(_('Canceled: the delivery order does not '
-                                       'contain lines from the original '
-                                       'sale order.'))
-            args = self._get_args(picking, lines_info)
-        else:
-            raise ValueError("Wrong value for picking_method, authorized "
-                             "values are 'partial' or 'complete', "
-                             "found: %s" % picking_method)
+
+        ###########################################################################
+        ## This is commented out as we always want it to send the full line info ##
+        ###########################################################################
+
+        # picking_method = picking.picking_method
+        # if picking_method == 'complete':
+        #     args = self._get_args(picking)
+        # elif picking_method == 'partial':
+        lines_info = self._get_lines_info(picking)
+        if not lines_info:
+            raise NothingToDoJob(_('Canceled: the delivery order does not '
+                                   'contain lines from the original '
+                                   'sale order.'))
+        args = self._get_args(picking, lines_info)
+        # else:
+        #     raise ValueError("Wrong value for picking_method, authorized "
+        #                      "values are 'partial' or 'complete', "
+        #                      "found: %s" % picking_method)
         try:
             magento_id = self.backend_adapter.create(*args)
         except xmlrpclib.Fault as err:
