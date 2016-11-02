@@ -108,7 +108,7 @@ class MagentoTrackingExport(ExportSynchronizer):
         self.backend_adapter.add_tracking_number(magento_id, *tracking_args)
 
 
-@on_tracking_number_added
+#@on_tracking_number_added
 def delay_export_tracking_number(session, model_name, record_id):
     """
     Call a job to export the tracking number to a existing picking that

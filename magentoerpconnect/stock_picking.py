@@ -293,10 +293,12 @@ def export_picking_done(session, model_name, record_id, with_tracking=True):
     # is True when the job is created.
     picking = session.browse(model_name, record_id)
     backend_id = picking.backend_id.id
+
+    if with_tracking and picking.carrier_tracking_ref:
+        export_tracking_number(session, model_name, record_id)
+
     env = get_environment(session, model_name, backend_id)
     picking_exporter = env.get_connector_unit(MagentoPickingExport)
     res = picking_exporter.run(record_id)
 
-    if with_tracking and picking.carrier_tracking_ref:
-        export_tracking_number.delay(session, model_name, record_id)
     return res
