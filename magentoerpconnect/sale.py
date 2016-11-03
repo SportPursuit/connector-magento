@@ -1005,7 +1005,7 @@ class SaleOrderImportMapper(ImportMapper):
         if carrier_ids:
             result = {'carrier_id': carrier_ids[0]}
         else:
-            fake_partner_id = session.search('res.partner', [])[0]
+            fake_partner_id = session.search('res.partner', [], limit=1)[0]
             model_data_obj = session.pool['ir.model.data']
             model, product_id = model_data_obj.get_object_reference(
                 session.cr, session.uid,
