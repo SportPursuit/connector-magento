@@ -704,9 +704,9 @@ def magento_product_modified(session, model_name, record_id, vals):
         return
     inventory_fields = list(set(vals).intersection(INVENTORY_FIELDS))
     if inventory_fields:
-        export_product_inventory.delay(session, model_name,
-                                       record_id, fields=inventory_fields,
-                                       priority=20)
+        export_product_inventory.delay(
+            session, model_name, record_id, fields=inventory_fields, priority=5
+        )
 
 
 @job
