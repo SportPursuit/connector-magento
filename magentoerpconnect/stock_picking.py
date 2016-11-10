@@ -297,5 +297,5 @@ def export_picking_done(session, model_name, record_id, with_tracking=True):
     res = picking_exporter.run(record_id)
 
     if with_tracking and picking.carrier_tracking_ref:
-        export_tracking_number.delay(session, model_name, record_id)
+        export_tracking_number.delay(session, model_name, record_id, priority=10)
     return res
