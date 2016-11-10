@@ -76,7 +76,7 @@ class MagentoBaseExporter(ExportSynchronizer):
         assert self.magento_id
         import_record.delay(self.session, self.model._name,
                             self.backend_record.id, self.magento_id,
-                            force=True)
+                            priority=15, force=True)
 
     def _should_import(self):
         """ Before the export, compare the update date

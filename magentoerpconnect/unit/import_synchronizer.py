@@ -276,6 +276,7 @@ class DelayedBatchImport(BatchImportSynchronizer):
                             self.model._name,
                             self.backend_record.id,
                             record_id,
+                            priority=15,
                             **kwargs)
 
 
