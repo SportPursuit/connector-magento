@@ -279,8 +279,7 @@ def delay_export_picking_out(session, model_name, record_id, vals):
     # picking at the time of execution of the job, a tracking could
     # have been added and it would be exported twice.
     with_tracking = bool(binding.carrier_tracking_ref)
-    export_picking_done.delay(session, model_name, record_id,
-                              with_tracking=with_tracking)
+    export_picking_done.delay(session, model_name, record_id, priority=10, with_tracking=with_tracking)
 
 
 @job
