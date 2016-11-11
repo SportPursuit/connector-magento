@@ -227,7 +227,7 @@ class magento_backend(orm.Model):
         session = ConnectorSession(cr, uid, context=context)
         for backend_id in ids:
             import_batch.delay(session, 'magento.res.partner.category',
-                               backend_id)
+                               backend_id, priority=15)
 
         return True
 
@@ -248,7 +248,7 @@ class magento_backend(orm.Model):
             import_batch.delay(session, model,
                                backend.id,
                                filters={'from_date': from_date,
-                                        'to_date': import_start_time})
+                                        'to_date': import_start_time}, priority=15)
         # Records from Magento are imported based on their `created_at`
         # date.  This date is set on Magento at the beginning of a
         # transaction, so if the import is run between the beginning and
@@ -387,7 +387,7 @@ class magento_website(orm.Model):
                 session, 'magento.res.partner', backend_id,
                 {'magento_website_id': website.magento_id,
                  'from_date': from_date,
-                 'to_date': import_start_time})
+                 'to_date': import_start_time}, priority=15)
         # Records from Magento are imported based on their `created_at`
         # date.  This date is set on Magento at the beginning of a
         # transaction, so if the import is run between the beginning and
