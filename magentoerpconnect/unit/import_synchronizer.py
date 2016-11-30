@@ -272,11 +272,14 @@ class DelayedBatchImport(BatchImportSynchronizer):
 
     def _import_record(self, record_id, **kwargs):
         """ Delay the import of the records"""
+
+        priority = kwargs.pop('priority', 15)
+
         import_record.delay(self.session,
                             self.model._name,
                             self.backend_record.id,
                             record_id,
-                            priority=15,
+                            priority=priority,
                             **kwargs)
 
 
