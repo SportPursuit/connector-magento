@@ -270,16 +270,25 @@ class DelayedBatchImport(BatchImportSynchronizer):
     """ Delay import of the records """
     _model_name = None
 
+    _priorities = {
+        'magento.product.product': 15,
+        'magento.sale.order': 10,
+    }
+
     def _import_record(self, record_id, **kwargs):
         """ Delay the import of the records"""
 
-        priority = kwargs.pop('priority', 15)
+        old_priority = kwargs.pop('priority', None)
+        new_priority = self._priorities.get(self.model._name, 20)
+
+        if old_priority != new_priority:
+            _logger.warning('Overriding priority on model %s import from %s to %s', self.model._name, old_priority, new_priority)
 
         import_record.delay(self.session,
                             self.model._name,
                             self.backend_record.id,
                             record_id,
-                            priority=priority,
+                            priority=new_priority,
                             **kwargs)
 
 
