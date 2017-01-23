@@ -127,18 +127,20 @@ class StockPickingAdapter(GenericAdapter):
         return self._call('%s.create' % self._magento_model,
                           [order_id, items, comment, email, include_comment])
 
-    def add_tracking_number(self, magento_id, carrier_code,
-                            tracking_title, tracking_number):
+    def add_tracking_number(self, magento_id, carrier_name, tracking_ref, tracking_url):
         """ Add new tracking number.
 
         :param magento_id: shipment increment id
-        :param carrier_code: code of the carrier on Magento
-        :param tracking_title: title displayed on Magento for the tracking
-        :param tracking_number: tracking number
+        :param carrier_name: the name of the carrier
+        :param tracking_ref: tracking number
+        :param tracking_url: link for the customer to click on to track their delivery
         """
-        return self._call('%s.addTrack' % self._magento_model,
-                          [magento_id, carrier_code,
-                           tracking_title, tracking_number])
+
+        model = 'sp_%s.addTrack' % self._magento_model
+        tracking_speed = ''  # e.g 24 hours
+        description = ''
+
+        return self._call(model, [magento_id, tracking_speed, carrier_name, tracking_ref, tracking_url, description])
 
     def get_carriers(self, magento_id):
         """ Get the list of carrier codes allowed for the shipping.
@@ -297,5 +299,5 @@ def export_picking_done(session, model_name, record_id, with_tracking=True):
     res = picking_exporter.run(record_id)
 
     if with_tracking and picking.carrier_tracking_ref:
-        export_tracking_number.delay(session, model_name, record_id, priority=10)
+        export_tracking_number(session, model_name, record_id, priority=10)
     return res

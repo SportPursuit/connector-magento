@@ -36,11 +36,6 @@ _logger = logging.getLogger(__name__)
 class MagentoTrackingExport(ExportSynchronizer):
     _model_name = ['magento.stock.picking.out']
 
-    def _get_tracking_args(self, picking):
-        return (picking.carrier_id.magento_carrier_code,
-                picking.carrier_id.magento_tracking_title or '',
-                picking.carrier_tracking_ref)
-
     def _validate(self, picking):
         if picking.state != 'done':  # should not happen
             raise ValueError("Wrong value for picking state, "
@@ -104,26 +99,37 @@ class MagentoTrackingExport(ExportSynchronizer):
 
         self._validate(picking)
         self._check_allowed_carrier(picking, sale_binding_id.magento_id)
-        tracking_args = self._get_tracking_args(picking)
-        self.backend_adapter.add_tracking_number(magento_id, *tracking_args)
+
+        for tracking in picking.tracking_references:
+            log_info = (
+                picking.sale_id.name, magento_id, tracking.carrier_id.name, tracking.tracking_reference,
+                tracking.magento_tracking_link
+            )
+            _logger.info('Sending tracking info for %s: %s %s %s %s', log_info)
+
+            self.backend_adapter.add_tracking_number(
+                magento_id, tracking.carrier_id.name, tracking.tracking_reference, tracking.tracking_link
+            )
 
 
-@on_tracking_number_added
-def delay_export_tracking_number(session, model_name, record_id):
-    """
-    Call a job to export the tracking number to a existing picking that
-    must be in done state.
-    """
-    # browse on stock.picking because we cant read on stock.picking.out
-    # buggy virtual models... Anyway the ID is the same
-    picking = session.browse('stock.picking', record_id)
-    for binding in picking.magento_bind_ids:
-        # Set the priority to 20 to have more chance that it would be
-        # executed after the picking creation
-        export_tracking_number.delay(session,
-                                     binding._model._name,
-                                     binding.id,
-                                     priority=10)
+# Commenting this out as we only want tracking reference jobs spawned when the picking is done which is handled
+# elsewhere
+# @on_tracking_number_added
+# def delay_export_tracking_number(session, model_name, record_id):
+#     """
+#     Call a job to export the tracking number to a existing picking that
+#     must be in done state.
+#     """
+#     # browse on stock.picking because we cant read on stock.picking.out
+#     # buggy virtual models... Anyway the ID is the same
+#     picking = session.browse('stock.picking', record_id)
+#     for binding in picking.magento_bind_ids:
+#         # Set the priority to 20 to have more chance that it would be
+#         # executed after the picking creation
+#         export_tracking_number.delay(session,
+#                                      binding._model._name,
+#                                      binding.id,
+#                                      priority=30)
 
 
 @job
