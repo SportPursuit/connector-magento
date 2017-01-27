@@ -108,7 +108,7 @@ class MagentoTrackingExport(ExportSynchronizer):
             _logger.info('Sending tracking info for %s: %s %s %s %s', *log_info)
 
             self.backend_adapter.add_tracking_number(
-                magento_id, tracking.carrier_id.name, tracking.tracking_reference, tracking.tracking_link
+                magento_id, tracking.carrier_id.name, tracking.tracking_reference, tracking.magento_tracking_link
             )
 
 
