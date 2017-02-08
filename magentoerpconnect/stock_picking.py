@@ -32,7 +32,6 @@ from openerp.addons.connector_ecommerce.event import on_picking_out_done
 from .unit.backend_adapter import GenericAdapter
 from .connector import get_environment
 from .backend import magento
-from .stock_tracking import export_tracking_number
 from .related_action import unwrap_binding
 
 _logger = logging.getLogger(__name__)
@@ -299,5 +298,6 @@ def export_picking_done(session, model_name, record_id, with_tracking=True):
     res = picking_exporter.run(record_id)
 
     if with_tracking and picking.carrier_tracking_ref:
+        from .stock_tracking import export_tracking_number
         export_tracking_number.delay(session, model_name, record_id, priority=10)
     return res
