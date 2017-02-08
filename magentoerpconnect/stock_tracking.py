@@ -28,6 +28,7 @@ from openerp.addons.connector_ecommerce.event import on_tracking_number_added
 from .connector import get_environment
 from .backend import magento
 from .related_action import unwrap_binding
+from .stock_picking import export_picking_done
 
 _logger = logging.getLogger(__name__)
 
@@ -100,20 +101,23 @@ class MagentoTrackingExport(ExportSynchronizer):
         self._validate(picking)
         self._check_allowed_carrier(picking, sale_binding_id.magento_id)
 
+        exported = []
+
         for tracking in picking.tracking_references:
             log_info = (
                 picking.sale_id.name, magento_id, tracking.carrier_id.name, tracking.tracking_reference,
                 tracking.magento_tracking_link
             )
             _logger.info('Sending tracking info for %s: %s %s %s %s', *log_info)
+            exported.append(log_info)
 
             self.backend_adapter.add_tracking_number(
                 magento_id, tracking.carrier_id.name, tracking.tracking_reference, tracking.magento_tracking_link
             )
 
+        return exported
 
-# Commenting this out as we only want tracking reference jobs spawned when the picking is done which is handled
-# elsewhere
+
 # @on_tracking_number_added
 # def delay_export_tracking_number(session, model_name, record_id):
 #     """
@@ -133,11 +137,17 @@ class MagentoTrackingExport(ExportSynchronizer):
 
 
 @job
-@related_action(action=unwrap_binding)
+# @related_action(action=unwrap_binding)
 def export_tracking_number(session, model_name, record_id):
     """ Export the tracking number of a delivery order. """
     picking = session.browse(model_name, record_id)
     backend_id = picking.backend_id.id
     env = get_environment(session, model_name, backend_id)
     tracking_exporter = env.get_connector_unit(MagentoTrackingExport)
-    return tracking_exporter.run(record_id)
+    exported = tracking_exporter.run(record_id)
+
+    # Tracking references have been sent to magento, so now it's safe to let Magento know that the picking is complete
+    # with_tracking is set to False because we have already sent the tracking info
+    export_picking_done.delay(session, model_name, record_id, priority=10, with_tracking=False)
+
+    return exported

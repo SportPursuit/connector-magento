@@ -269,7 +269,7 @@ def picking_out_done(session, model_name, record_id, picking_method):
                         'picking_method': picking_method})
 
 
-@on_record_create(model_names='magento.stock.picking.out')
+# @on_record_create(model_names='magento.stock.picking.out')
 def delay_export_picking_out(session, model_name, record_id, vals):
     binding = session.browse(model_name, record_id)
     # tracking number is sent when:
@@ -285,7 +285,7 @@ def delay_export_picking_out(session, model_name, record_id, vals):
 
 
 @job
-@related_action(action=unwrap_binding)
+# @related_action(action=unwrap_binding)
 def export_picking_done(session, model_name, record_id, with_tracking=True):
     """ Export a complete or partial delivery order. """
     # with_tracking is True to keep a backward compatibility (jobs that
