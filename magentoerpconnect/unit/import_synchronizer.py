@@ -272,7 +272,7 @@ class DelayedBatchImport(BatchImportSynchronizer):
 
     _priorities = {
         'magento.product.product': 15,
-        'magento.sale.order': 10,
+        'magento.sale.order': 3,
     }
 
     def _import_record(self, record_id, **kwargs):

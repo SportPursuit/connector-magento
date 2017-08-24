@@ -564,7 +564,7 @@ class magento_storeview(orm.Model):
                 {'magento_storeview_id': storeview.magento_id,
                  'from_date': from_date,
                  'to_date': import_start_time},
-                priority=10)  # executed as soon as possible
+                priority=3)  # executed as soon as possible
         # Records from Magento are imported based on their `created_at`
         # date.  This date is set on Magento at the beginning of a
         # transaction, so if the import is run between the beginning and
