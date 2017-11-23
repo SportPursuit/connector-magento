@@ -27,9 +27,9 @@ from openerp.osv import fields, orm
 from openerp.tools.translate import _
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.session import ConnectorSession
-from openerp.addons.connector.exception import (NothingToDoJob,
-                                                FailedJobError,
-                                                IDMissingInBackend)
+from openerp.addons.connector.exception import (
+    NothingToDoJob, FailedJobError, IDMissingInBackend, RetryableJobError
+)
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.unit.synchronizer import ExportSynchronizer
 from openerp.addons.connector.unit.mapper import (mapping,
@@ -40,6 +40,8 @@ from openerp.addons.connector_ecommerce.unit.sale_order_onchange import (
 from openerp.addons.connector_ecommerce.sale import (ShippingLineBuilder,
                                                      CashOnDeliveryLineBuilder,
                                                      GiftOrderLineBuilder)
+from psycopg2 import IntegrityError
+
 from .unit.backend_adapter import (GenericAdapter,
                                    MAGENTO_DATETIME_FORMAT,
                                    )
@@ -863,14 +865,16 @@ class SaleOrderImport(MagentoImportSynchronizer):
     def _import_dependencies(self):
         record = self.magento_record
 
-        self._import_addresses()
+        try:
+            self._import_addresses()
 
-        for line in record.get('items', []):
-            _logger.debug('line: %s', line)
-            if 'product_id' in line:
-                self._import_dependency(line['product_id'],
-                                        'magento.product.product')
-
+            for line in record.get('items', []):
+                _logger.debug('line: %s', line)
+                if 'product_id' in line:
+                    self._import_dependency(line['product_id'],
+                                            'magento.product.product')
+        except IntegrityError:
+            raise RetryableJobError('IntegrityError importing dependency. Retrying')
 
 @magento
 class SaleOrderCommentImportMapper(ImportMapper):
