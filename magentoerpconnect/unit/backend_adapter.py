@@ -215,7 +215,7 @@ class GenericAdapter(MagentoCRUDAdapter):
 
         :rtype: dict
         """
-        arguments = [int(id)]
+        arguments = [id]
         if attributes:
             # Avoid to pass Null values in attributes. Workaround for
             # https://bugs.launchpad.net/openerp-connector-magento/+bug/1210775
@@ -241,11 +241,11 @@ class GenericAdapter(MagentoCRUDAdapter):
     def write(self, id, data):
         """ Update records on the external system """
         return self._call('%s.update' % self._magento_model,
-                          [int(id), data])
+                          [id, data])
 
     def delete(self, id):
         """ Delete a record on the external system """
-        return self._call('%s.delete' % self._magento_model, [int(id)])
+        return self._call('%s.delete' % self._magento_model, [id])
 
     def admin_url(self, id):
         """ Return the URL in the Magento admin for a record """
