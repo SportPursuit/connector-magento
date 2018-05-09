@@ -703,6 +703,9 @@ def magento_product_modified(session, model_name, record_id, vals):
     if session.browse(model_name, record_id).no_stock_sync:
         return
     inventory_fields = list(set(vals).intersection(INVENTORY_FIELDS))
+
+    _logger.error('Magento product modified: %s - %s (export: %s)', record_id, vals, True if inventory_fields else False)
+
     if inventory_fields:
         export_product_inventory.delay(
             session, model_name, record_id, fields=inventory_fields, priority=5
