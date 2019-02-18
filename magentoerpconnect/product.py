@@ -357,27 +357,31 @@ class CatalogImageImporter(ImportSynchronizer):
         return sorted(images, key=priority)
 
     def _get_binary_image(self, image_data):
-        url = image_data['url'].encode('utf8')
-        try:
-            request = urllib2.Request(url)
-            if self.backend_record.auth_basic_username \
-                    and self.backend_record.auth_basic_password:
-                base64string = base64.encodestring(
-                    '%s:%s' % (self.backend_record.auth_basic_username,
-                               self.backend_record.auth_basic_password))
-                request.add_header("Authorization", "Basic %s" % base64string)
-            binary = urllib2.urlopen(request)
-        except urllib2.HTTPError as err:
-            if err.code == 404:
-                # the image is just missing, we skip it
-                return
+        url = image_data.get('url')
+        if url:
+            try:
+                url = url.encode('utf8')
+                request = urllib2.Request(url)
+                if self.backend_record.auth_basic_username \
+                        and self.backend_record.auth_basic_password:
+                    base64string = base64.encodestring(
+                        '%s:%s' % (self.backend_record.auth_basic_username,
+                                   self.backend_record.auth_basic_password))
+                    request.add_header("Authorization", "Basic %s" % base64string)
+                binary = urllib2.urlopen(request)
+            except urllib2.HTTPError as err:
+                if err.code == 404:
+                    # the image is just missing, we skip it
+                    return
+                else:
+                    # we don't know why we couldn't download the image
+                    # so we propagate the error, the import will fail
+                    # and we have to check why it couldn't be accessed
+                    raise
             else:
-                # we don't know why we couldn't download the image
-                # so we propagate the error, the import will fail
-                # and we have to check why it couldn't be accessed
-                raise
+                return binary.read()
         else:
-            return binary.read()
+            return None
 
     def run(self, magento_id, binding_id):
         self.magento_id = magento_id
