@@ -285,6 +285,8 @@ class magento_backend(orm.Model):
         domain = self._domain_for_update_product_stock_qty(cr, uid, ids,
                                                            context=context)
         product_ids = mag_product_obj.search(cr, uid, domain, context=context)
+        _logger.info("Recompute quantity: magento product fetched: {count}"
+                     .format(count=len(product_ids)))
         mag_product_obj.recompute_magento_qty(cr, uid, product_ids,
                                               context=context)
         return True

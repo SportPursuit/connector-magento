@@ -186,7 +186,11 @@ class magento_product_product(orm.Model):
             product_fields += read_fields
 
         product_ids = [product['id'] for product in products]
+        count = 1
+        _logger.info("Recompute quantity: started recomputing quantities")
         for chunk_ids in chunks(product_ids, self.RECOMPUTE_QTY_STEP):
+            _logger.info("Recompute quantity: chunk {count} elements {elements}"
+                         .format(count=count, elements=len(chunk_ids)))
             for product in self.read(cr, uid, chunk_ids, product_fields,
                                      context=location_ctx):
                 new_qty = self._magento_qty(cr, uid, product,
@@ -194,10 +198,17 @@ class magento_product_product(orm.Model):
                                             location,
                                             stock_field,
                                             context=location_ctx)
-                if new_qty != product['magento_qty']:
+                old_qty = product['magento_qty']
+                if new_qty != old_qty:
+                    _logger.info("Recompute quantity: updating magento "
+                                 "product from {old} to {new} quantity".
+                                 format(old=old_qty, new=new_qty)
+                                 )
                     self.write(cr, uid, product['id'],
                                {'magento_qty': new_qty},
                                context=context)
+            count += 1
+        _logger.info("Recompute quantity: finished recomputing quantities")
 
     def _magento_qty(self, cr, uid, product, backend, location,
                      stock_field, context=None):
