@@ -661,13 +661,34 @@ class ProductInventoryExport(ExportSynchronizer):
                        'yes-and-notification': 2,
                        }
 
+    def _get_quick_delivery(self, product):
+        product_attribute_obj = self.session.pool.get(
+            'product.shop.attributes'
+        )
+        product_attribute = product_attribute_obj.browse(
+            self.session.cr, self.session.uid,
+            product_attribute_obj.search(
+                self.session.cr, self.session.uid,
+                [('product_id', '=', product.openerp_id.id)]
+            )
+        )
+        product_attribute = product_attribute[0] if \
+            isinstance(product_attribute_obj, list) \
+            else product_attribute
+
+        return product_attribute.quick_delivery
+
     def _get_data(self, product, fields):
         result = {}
         if 'magento_qty' in fields:
             result.update({
                 'qty': product.magento_qty,
                 # put the stock availability to "out of stock"
-                'is_in_stock': int(product.magento_qty > 0)
+                'is_in_stock': int(product.magento_qty > 0),
+                # a workaround to set the quick_delivery flag
+                # after disabling the elastic search job
+                # without hitting too much magento
+                'quick_delivery': self._get_quick_delivery(product)
             })
         if 'manage_stock' in fields:
             manage = product.manage_stock
