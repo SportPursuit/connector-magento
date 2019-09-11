@@ -670,11 +670,8 @@ class ProductInventoryExport(ExportSynchronizer):
             product_attribute_obj.search(
                 self.session.cr, self.session.uid,
                 [('product_id', '=', product.openerp_id.id)]
-            )
+            )[0]
         )
-        product_attribute = product_attribute[0] if \
-            isinstance(product_attribute_obj, list) \
-            else product_attribute
 
         return product_attribute.quick_delivery
 
