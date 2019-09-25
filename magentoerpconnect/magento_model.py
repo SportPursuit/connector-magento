@@ -544,6 +544,7 @@ class magento_storeview(orm.Model):
     def import_sale_orders(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         import_start_time = datetime.now()
+        import_cutoff_time = import_start_time - timedelta(hours=1)
         for storeview in self.browse(cr, uid, ids, context=context):
             if storeview.no_sales_order_sync:
                 _logger.debug("The storeview '%s' is active in Magento "
@@ -563,7 +564,7 @@ class magento_storeview(orm.Model):
                 backend_id,
                 {'magento_storeview_id': storeview.magento_id,
                  'from_date': from_date,
-                 'to_date': import_start_time},
+                 'to_date': import_cutoff_time},
                 priority=3)  # executed as soon as possible
         # Records from Magento are imported based on their `created_at`
         # date.  This date is set on Magento at the beginning of a
@@ -575,7 +576,7 @@ class magento_storeview(orm.Model):
         # but this is not a big deal because the sales orders will be
         # imported the first time and the jobs will be skipped on the
         # subsequent imports
-        next_time = import_start_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
+        next_time = import_cutoff_time - timedelta(seconds=IMPORT_DELTA_BUFFER)
         next_time = next_time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
         self.write(cr, uid, ids, {'import_orders_from_date': next_time},
                    context=context)
