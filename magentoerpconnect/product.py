@@ -710,6 +710,27 @@ class ProductInventoryExport(ExportSynchronizer):
         self.backend_adapter.update_inventory(magento_id, data)
 
 
+class ProductShopAttributes(osv.osv):
+    _inherit = 'product.shop.attributes'
+
+    def resync_stock(self, cr, uid, ids, context=context):
+        magento_product_obj = self.pool.get('magento.product.product')
+        if ids:
+            if not isinstance(ids, list):
+                ids = [ids]
+            magento_product_ids = magento_product_obj.search(cr, uid, [('openerp_id', 'in', ids)])
+            magento_product_obj.recompute_magento_qty(self, cr, uid, magento_product_ids, context=context)
+
+    def write(self, cr, uid, ids, vals, context=None):
+        res = super(ProductShopAttributes, self).write(cr, uid, ids, vals, context)
+        qd = vals.get('quick_delivery', 'NO CHANGE')
+        if qd != 'NO CHANGE':
+
+            self.resync_stock(cr, uid, ids, context=context)
+
+        return res
+
+
 # fields which should not trigger an export of the products
 # but an export of their inventory
 INVENTORY_FIELDS = ('manage_stock',
