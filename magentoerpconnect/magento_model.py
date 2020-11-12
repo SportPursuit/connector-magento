@@ -544,7 +544,7 @@ class magento_storeview(orm.Model):
     def import_sale_orders(self, cr, uid, ids, context=None):
         session = ConnectorSession(cr, uid, context=context)
         task_start_time = datetime.now()
-        import_start_time = task_start_time - timedelta(hours=1)
+        import_start_time = task_start_time - timedelta(minutes=30)
         for storeview in self.browse(cr, uid, ids, context=context):
             if storeview.no_sales_order_sync:
                 _logger.debug("The storeview '%s' is active in Magento "
