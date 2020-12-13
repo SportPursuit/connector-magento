@@ -126,20 +126,20 @@ class StockPickingAdapter(GenericAdapter):
         return self._call('%s.create' % self._magento_model,
                           [order_id, items, comment, email, include_comment])
 
-    def add_tracking_number(self, magento_id, carrier_name, tracking_ref, tracking_url):
+    def add_tracking_number(self, magento_id, warehouse_code, carrier_name, tracking_ref, tracking_url):
         """ Add new tracking number.
 
         :param magento_id: shipment increment id
+        :param warehouse_code: warehouse from which items are dispatched
         :param carrier_name: the name of the carrier
         :param tracking_ref: tracking number
         :param tracking_url: link for the customer to click on to track their delivery
         """
 
         model = 'sp_%s.addTrack' % self._magento_model
-        tracking_speed = ''  # e.g 24 hours
         description = ''
 
-        return self._call(model, [magento_id, tracking_speed, carrier_name, tracking_ref, tracking_url, description])
+        return self._call(model, [magento_id, warehouse_code, carrier_name, tracking_ref, tracking_url, description])
 
     def get_carriers(self, magento_id):
         """ Get the list of carrier codes allowed for the shipping.
