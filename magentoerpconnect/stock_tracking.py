@@ -67,6 +67,9 @@ class MagentoTrackingExport(ExportSynchronizer):
         """ Export the tracking number of a picking to Magento """
         # verify the picking is done + magento id exists
         picking = self.session.browse(self.model._name, binding_id)
+        warehouse_code = ''
+        if picking.warehouse_id:
+            warehouse_code = picking.warehouse_id.code
         carrier = picking.carrier_id
         if not carrier:
             return FailedJobError('The carrier is missing on the picking %s.' %
@@ -112,7 +115,7 @@ class MagentoTrackingExport(ExportSynchronizer):
             exported.append(log_info)
 
             self.backend_adapter.add_tracking_number(
-                magento_id, tracking.carrier_id.name, tracking.tracking_reference, tracking.magento_tracking_link
+                magento_id, warehouse_code, tracking.carrier_id.name, tracking.tracking_reference, tracking.magento_tracking_link
             )
 
         return exported
