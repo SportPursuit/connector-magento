@@ -620,7 +620,8 @@ class SaleOrderImport(MagentoImportSynchronizer):
         in the case of multiple editions / cancellations.
         """
         parent_id = self.magento_record.get('relation_parent_real_id')
-        if not parent_id:
+        created_by_odoo = self.magento_record.get('created_by_odoo', False)
+        if not parent_id and created_by_odoo:
             return
         all_parent_ids = []
         while parent_id:
