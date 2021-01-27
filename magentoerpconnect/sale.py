@@ -621,7 +621,7 @@ class SaleOrderImport(MagentoImportSynchronizer):
         """
         parent_id = self.magento_record.get('relation_parent_real_id')
         created_by_odoo = self.magento_record.get('created_by_odoo', False)
-        if not parent_id and created_by_odoo:
+        if not parent_id:
             return
         all_parent_ids = []
         while parent_id:
@@ -642,7 +642,7 @@ class SaleOrderImport(MagentoImportSynchronizer):
                                                 parent_bind_id,
                                                 ['canceled_in_backend']
                                                 )['canceled_in_backend']
-            if not parent_canceled:
+            if not parent_canceled and created_by_odoo:
                 self.session.write(self.model._name,
                                    parent_bind_id,
                                    {'canceled_in_backend': True})
